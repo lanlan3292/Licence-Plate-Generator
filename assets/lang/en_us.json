@@ -1,0 +1,62 @@
+{
+  "_meta": {
+    "code":   "en_us",
+    "locale": "en-US",
+    "flag":   "🇺🇸",
+    "label":  "English (United States)",
+    "sub":    "English"
+  },
+
+  "page_title":     "EU Plate Generator",
+  "header_sub":     "European License Plate Generator",
+
+  "lbl_country":    "Country / Region",
+  "lbl_text":       "Plate Text",
+  "placeholder":    "e.g. AB 1234",
+  "fmt_prefix":     "Format:",
+
+  "btn_generate":   "Generate",
+  "btn_random":     "Random",
+
+  "lbl_res":        "Output Resolution",
+  "res_hint":       "Final pixel size of the exported PNG",
+  "res_badge":      "Output: {w} × {h} px",
+
+  "lbl_link":       "Direct Image Link",
+  "copy_title":     "Copy link",
+  "copied":         "✓ Copied!",
+  "link_hint":      "Open this URL for a standalone plate image (no UI)",
+  "btn_open":       "Open Plate Image URL ↗",
+
+  "hist_title":     "Recent Plates",
+  "hist_empty":     "No plates yet.",
+  "remove":         "Remove",
+
+  "empty_title":    "Nothing here yet",
+  "empty_msg":      "Choose a country and enter your plate text, then press Generate.",
+
+  "preview_label":  "Live Preview",
+  "btn_download":   "⬇ Download PNG",
+  "btn_save":       "＋ Save to History",
+
+  "lang_keys_mode": "⌨ Showing raw key names",
+
+  "err_unknown_country": "Unknown country code: \"{country}\". Available: {list}",
+  "err_no_text":         "No plate text. Add ?text=YOUR-PLATE to the URL.",
+
+  "country_de":  "Germany",
+  "country_fr":  "France",
+  "country_it":  "Italy",
+  "country_es":  "Spain",
+  "country_nl":  "Netherlands",
+  "country_uk":  "United Kingdom",
+  "country_ch":  "Switzerland",
+  "country_pl":  "Poland",
+  "country_se":  "Sweden",
+  "country_at":  "Austria",
+  "country_be":  "Belgium",
+  "country_cz":  "Czech Republic",
+  "country_pt":  "Portugal",
+  "country_no":  "Norway",
+  "country_cn": "China"
+}

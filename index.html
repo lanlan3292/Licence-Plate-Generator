@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Plate Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=Noto+Color+Emoji&family=Noto+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARIABLES ──────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:      #0d0d0f;
+  --surface: #16161a;
+  --card:    #1e1e24;
+  --border:  #2a2a35;
+  --accent:  #e8c84a;
+  --accent2: #4a9fe8;
+  --text:    #f0f0f4;
+  --muted:   #7a7a8c;
+  --danger:  #e84a4a;
+  --radius:  10px;
+}
+html { font-size: 16px; }
+body {
+  font-family: 'Noto Sans', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Emoji font applied globally so flags render correctly everywhere */
+.emoji {
+  font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+}
+
+/* ── LOADING ─────────────────────────────────────────────────────────────────── */
+#loading {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; transition: opacity .3s;
+}
+#loading.done { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── HEADER ──────────────────────────────────────────────────────────────────── */
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 64px;
+  display: flex; align-items: center; gap: 16px;
+  background: var(--surface); flex-shrink: 0;
+}
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 3px; color: var(--accent); line-height: 1;
+}
+.sub {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  border-left: 1px solid var(--border); padding-left: 16px;
+}
+.spacer { flex: 1; }
+
+/* Keys-mode banner */
+#keys-banner {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 8888;
+  padding: 6px 20px; background: rgba(232,200,74,.12);
+  border-top: 1px solid var(--accent);
+  font-size: 11px; color: var(--accent); letter-spacing: 1px; text-align: center;
+}
+
+/* ── SHARED DROPDOWN STYLES ──────────────────────────────────────────────────── */
+/* Used by both lang switcher and country selector */
+.custom-dd-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 9px 13px; color: var(--text); font-size: 14px;
+  font-family: inherit; cursor: pointer; user-select: none;
+  width: 100%; text-align: left; transition: border-color .2s;
+}
+.custom-dd-btn:hover { border-color: var(--accent); }
+.custom-dd-btn .dd-chevron {
+  margin-left: auto; font-size: 9px; color: var(--muted);
+  display: inline-block; transition: transform .2s; flex-shrink: 0;
+}
+.custom-dd-btn.open .dd-chevron { transform: rotate(180deg); }
+
+.custom-dd-panel {
+  display: none; position: absolute;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.6); z-index: 9999;
+  flex-direction: column;
+}
+.custom-dd-panel.open { display: flex; animation: dropIn .15s ease; }
+@keyframes dropIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+
+.custom-dd-opts {
+  overflow-y: auto;
+  max-height: 260px;
+}
+.custom-dd-opts::-webkit-scrollbar { width: 4px; }
+.custom-dd-opts::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.dd-opt {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; font-size: 13px; cursor: pointer;
+  transition: background .12s; border-bottom: 1px solid var(--border);
+}
+.dd-opt:last-child { border-bottom: none; }
+.dd-opt:hover { background: var(--border); }
+.dd-opt.active { color: var(--accent); }
+.dd-opt.active::after { content: "✓"; margin-left: auto; font-size: 12px; color: var(--accent); }
+.dd-opt .opt-flag { font-size: 20px; flex-shrink: 0; font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+.dd-opt .opt-main { font-weight: 500; line-height: 1.4; }
+.dd-opt .opt-sub  { font-size: 11px; color: var(--muted); }
+
+/* Bottom hint strip in dropdown */
+.dd-hint-strip {
+  padding: 7px 14px; font-size: 10px; color: var(--muted);
+  border-top: 1px solid var(--border); flex-shrink: 0; user-select: none;
+}
+
+/* ── LANGUAGE SWITCHER (header) ──────────────────────────────────────────────── */
+.lang-sw { position: relative; }
+
+.lang-sw .custom-dd-btn {
+  padding: 7px 13px; font-size: 13px; width: auto;
+}
+.lang-sw .custom-dd-panel {
+  top: calc(100% + 8px); right: 0; width: 236px;
+}
+
+/* Keys-mode style */
+.lang-sw.keys-mode .custom-dd-btn { border-color: var(--accent); color: var(--accent); }
+
+/* ── LAYOUT ──────────────────────────────────────────────────────────────────── */
+main {
+  flex: 1; display: grid;
+  grid-template-columns: 355px 1fr;
+  height: calc(100vh - 64px); overflow: hidden;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 22px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.field-group { display: flex; flex-direction: column; gap: 7px; }
+label {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* ── COUNTRY SELECTOR ────────────────────────────────────────────────────────── */
+/* Wraps button + panel; panel positioned relative to this */
+.country-dd-wrap { position: relative; }
+
+.country-dd-wrap .custom-dd-btn .btn-flag {
+  font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  font-size: 18px; flex-shrink: 0;
+}
+.country-dd-wrap .custom-dd-btn .btn-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.country-dd-wrap .custom-dd-panel {
+  top: calc(100% + 4px); left: 0; right: 0;
+}
+
+/* ── PLAIN INPUTS ────────────────────────────────────────────────────────────── */
+input[type=text], input[type=number] {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 14px;
+  font-family: 'IBM Plex Mono', monospace; padding: 9px 13px;
+  outline: none; transition: border-color .2s; appearance: none;
+}
+input:focus { border-color: var(--accent); }
+input.invalid { border-color: var(--danger); }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button { opacity: .4; }
+.hint { font-size: 11px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+
+/* ── RESOLUTION ──────────────────────────────────────────────────────────────── */
+.res-row {
+  display: grid; grid-template-columns: 1fr 18px 1fr 78px;
+  align-items: center; gap: 5px;
+}
+.res-row .sep { text-align: center; color: var(--muted); font-size: 14px; font-family: 'IBM Plex Mono', monospace; }
+
+/* Res unit select — keep as native since it's small */
+.res-row select {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 12px;
+  font-family: inherit; padding: 9px 8px; outline: none;
+  transition: border-color .2s; appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%237a7a8c'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; padding-right: 24px;
+}
+.res-row select:focus { border-color: var(--accent); }
+
+.res-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.res-preset {
+  padding: 4px 9px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; color: var(--muted); transition: all .15s; user-select: none;
+}
+.res-preset:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* ── BUTTONS ─────────────────────────────────────────────────────────────────── */
+.btn {
+  width: 100%; padding: 11px 16px; border: none; border-radius: var(--radius);
+  font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.btn-primary  { background: var(--accent); color: #000; }
+.btn-primary:hover  { background: #f0d660; transform: translateY(-1px); }
+.btn-secondary { background: transparent; color: var(--accent2); border: 1px solid var(--accent2); }
+.btn-secondary:hover { background: rgba(74,159,232,.1); }
+.btn-ghost { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-row { display: flex; gap: 10px; }
+.btn-row .btn { flex: 1; }
+
+/* ── LINK BOX ────────────────────────────────────────────────────────────────── */
+.link-box {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 9px 12px; display: flex; gap: 10px; align-items: center;
+}
+.link-box code {
+  flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.link-box button {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 16px; padding: 2px 4px; border-radius: 4px; transition: color .2s; flex-shrink: 0;
+}
+.link-box button:hover { color: var(--accent); }
+.copied-toast { font-size: 11px; color: #4ae880; height: 16px; transition: opacity .4s; }
+.copied-toast.hidden { opacity: 0; }
+
+/* ── DIVIDER ─────────────────────────────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); }
+
+/* ── HISTORY ─────────────────────────────────────────────────────────────────── */
+.history-title { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.history-list  { display: flex; flex-direction: column; gap: 6px; max-height: 190px; overflow-y: auto; }
+.history-item  {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 7px; cursor: pointer; transition: border-color .2s;
+}
+.history-item:hover { border-color: var(--accent); }
+.hi-flag { font-size: 18px; line-height: 1; font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+.hi-text { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; letter-spacing: 1px; }
+.hi-country { font-size: 11px; color: var(--muted); }
+.hi-del {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 14px; padding: 2px 4px; border-radius: 4px; line-height: 1;
+}
+.hi-del:hover { color: var(--danger); }
+
+/* ── PREVIEW AREA ────────────────────────────────────────────────────────────── */
+.preview-area {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px; gap: 24px; overflow: hidden;
+  /*
+   * Background: only a subtle grid pattern.
+   * The large black ellipse in the old version was caused by a radial-gradient
+   * with rgba(0,0,0,x) — removed entirely here.
+   */
+  background:
+    repeating-linear-gradient(0deg,   transparent, transparent 39px, rgba(255,255,255,.018) 40px),
+    repeating-linear-gradient(90deg,  transparent, transparent 39px, rgba(255,255,255,.018) 40px),
+    var(--bg);
+}
+.preview-label {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px;
+  font-size: 13px; color: var(--muted); text-transform: uppercase;
+}
+
+/* Shadow always present so it doesn't flash in/out */
+#plate-canvas-wrap {
+  max-width: 100%;
+  filter: drop-shadow(0 10px 36px rgba(0,0,0,.65)) drop-shadow(0 3px 10px rgba(0,0,0,.45));
+  transition: transform .3s ease;
+}
+#plate-canvas-wrap:hover { transform: scale(1.015) translateY(-3px); }
+#plate-canvas { border-radius: 4px; display: block; max-width: 100%; height: auto; }
+
+/* ── EMPTY STATE ─────────────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  padding: 40px 32px; text-align: center; max-width: 360px;
+}
+.empty-plate-mock {
+  width: 300px; height: 64px;
+  background: var(--card); border: 2px dashed var(--border); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
+}
+.empty-plate-mock::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 36px;
+  background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(42,42,53,.5) 4px, rgba(42,42,53,.5) 8px);
+  border-right: 1px solid var(--border);
+}
+.empty-plate-mock .mock-text {
+  font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600;
+  letter-spacing: 6px; color: var(--border); user-select: none;
+}
+.empty-state h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+.empty-state p  { font-size: 13px; line-height: 1.7; color: var(--muted); }
+.empty-steps    { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+.empty-step {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; background: rgba(255,255,255,.025);
+  border: 1px solid var(--border); border-radius: 7px;
+  font-size: 12px; color: var(--muted);
+}
+.empty-step .sn {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--border); color: var(--muted); font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ── MISC ────────────────────────────────────────────────────────────────────── */
+.res-badge {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted);
+  background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 4px 14px;
+}
+.action-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.action-row .btn { width: auto; padding: 10px 22px; font-size: 12px; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div></div>
+<div id="keys-banner"></div>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">PLATES</div>
+  <div class="sub" id="hdr-sub"></div>
+  <div class="spacer"></div>
+
+  <!-- Language switcher -->
+  <div class="lang-sw" id="lang-sw">
+    <button class="custom-dd-btn" id="lang-btn">
+      <span id="lang-flag" class="opt-flag">🌐</span>
+      <span id="lang-label"></span>
+      <span class="dd-chevron">▼</span>
+    </button>
+    <div class="custom-dd-panel" id="lang-dd">
+      <div class="custom-dd-opts" id="lang-dd-opts"></div>
+      <div class="dd-hint-strip" id="lang-ctrl-hint">?debug_lang=1 → raw key names</div>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN ────────────────────────────────────────────────────────────────── -->
+<main>
+  <aside class="sidebar">
+
+    <!-- Country / Region -->
+    <div class="field-group">
+      <label id="lbl-country"></label>
+      <div class="country-dd-wrap" id="country-dd-wrap">
+        <button class="custom-dd-btn" id="country-btn">
+          <span class="btn-flag" id="country-btn-flag">🌍</span>
+          <span class="btn-name" id="country-btn-name">—</span>
+          <span class="dd-chevron">▼</span>
+        </button>
+        <div class="custom-dd-panel" id="country-dd">
+          <div class="custom-dd-opts" id="country-dd-opts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plate text -->
+    <div class="field-group">
+      <label id="lbl-text"></label>
+      <input type="text" id="plate-text" maxlength="20" autocomplete="off" spellcheck="false">
+      <div class="hint" id="fmt-hint-row"></div>
+    </div>
+
+    <!-- Generate / Random -->
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-generate"></button>
+      <button class="btn btn-ghost"   id="btn-random"></button>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Resolution -->
+    <div class="field-group">
+      <label id="lbl-res"></label>
+      <div class="res-row">
+        <input type="number" id="res-w" min="100" max="9999" value="1040">
+        <span class="sep">×</span>
+        <input type="number" id="res-h" min="50"  max="9999" value="220">
+        <select id="res-unit">
+          <option value="px">px</option>
+          <option value="2">2×</option>
+          <option value="3">3×</option>
+          <option value="4">4×</option>
+        </select>
+      </div>
+      <div class="res-presets" id="res-presets"></div>
+      <div class="hint" id="res-hint"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Link -->
+    <div class="field-group">
+      <label id="lbl-link"></label>
+      <div class="link-box">
+        <code id="link-display">–</code>
+        <button id="btn-copy">⎘</button>
+      </div>
+      <div class="copied-toast hidden" id="copy-toast"></div>
+      <div class="hint" id="link-hint"></div>
+    </div>
+    <button class="btn btn-secondary" id="btn-open-link"></button>
+
+    <div class="divider"></div>
+
+    <div class="history-title" id="hist-title"></div>
+    <div class="history-list"  id="history-list"></div>
+
+  </aside>
+
+  <!-- ── PREVIEW ────────────────────────────────────────────────────────── -->
+  <section class="preview-area">
+    <div class="preview-label" id="preview-label"></div>
+
+    <div id="plate-canvas-wrap">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-plate-mock"><span class="mock-text">· · · · ·</span></div>
+        <div>
+          <h3 id="empty-title"></h3>
+          <p id="empty-msg" style="margin-top:6px"></p>
+        </div>
+        <div class="empty-steps" id="empty-steps"></div>
+      </div>
+      <canvas id="plate-canvas" style="display:none"></canvas>
+    </div>
+
+    <div class="res-badge" id="res-badge" style="display:none"></div>
+
+    <div class="action-row" id="action-row" style="display:none">
+      <button class="btn btn-primary" id="btn-download"></button>
+      <button class="btn btn-ghost"   id="btn-add-history"></button>
+    </div>
+  </section>
+</main>
+
+<script src="assets/i18n.js"></script>
+<script src="assets/renderer.js"></script>
+<script src="assets/plate-registry.js"></script>
+<script>
+"use strict";
+
+// ── Shorthand ─────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const t = (key, vars) => I18n.t(key, vars);
+
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const plateText     = $("plate-text");
+const canvas        = $("plate-canvas");
+
+// Current selection state
+let _selectedCountry = null;   // config object
+let currentCfg       = null;
+let currentText      = "";
+
+// ── applyLang ─────────────────────────────────────────────────────────────────
+function applyLang() {
+  document.title = t("page_title");
+
+  const nodes = {
+    "hdr-sub":        "header_sub",
+    "lbl-country":    "lbl_country",
+    "lbl-text":       "lbl_text",
+    "btn-generate":   "btn_generate",
+    "btn-random":     "btn_random",
+    "lbl-res":        "lbl_res",
+    "res-hint":       "res_hint",
+    "lbl-link":       "lbl_link",
+    "link-hint":      "link_hint",
+    "btn-open-link":  "btn_open",
+    "hist-title":     "hist_title",
+    "preview-label":  "preview_label",
+    "btn-download":   "btn_download",
+    "btn-add-history":"btn_save",
+    "copy-toast":     "copied",
+    "empty-title":    "empty_title",
+    "empty-msg":      "empty_msg",
+  };
+  for (const [id, key] of Object.entries(nodes)) {
+    const el = $(id); if (el) el.textContent = t(key);
+  }
+
+  $("btn-copy").title = t("copy_title");
+  plateText.placeholder = t("placeholder");
+
+  // Update lang button display
+  const m = I18n.meta(I18n.lang);
+  $("lang-flag").textContent  = m.flag;
+  $("lang-label").textContent = m.label;
+
+  // Mark active in lang dropdown
+  document.querySelectorAll("#lang-dd-opts .dd-opt").forEach(el => {
+    el.classList.toggle("active", el.dataset.lang === I18n.lang);
+  });
+
+  // Keys mode UI
+  const banner = $("keys-banner");
+  if (I18n.keysMode) {
+    banner.style.display = "block";
+    banner.textContent   = t("lang_keys_mode");
+    $("lang-sw").classList.add("keys-mode");
+  }
+
+  rebuildCountryDropdown();
+  buildEmptySteps();
+  updateFmtHint();
+  updateResBadge();
+  renderHistory();
+}
+
+// ── Language dropdown ─────────────────────────────────────────────────────────
+function buildLangDropdown() {
+  const opts = $("lang-dd-opts"); opts.innerHTML = "";
+  I18n.available.forEach(code => {
+    const m   = I18n.meta(code);
+    const div = document.createElement("div");
+    div.className = "dd-opt" + (code === I18n.lang ? " active" : "");
+    div.dataset.lang = code;
+    div.innerHTML = `<span class="opt-flag">${m.flag}</span><div><div class="opt-main">${m.label}</div><div class="opt-sub">${m.sub}</div></div>`;
+    div.addEventListener("click", async () => {
+      closeDd("lang-btn", "lang-dd");
+      await I18n.setLang(code);
+    });
+    opts.appendChild(div);
+  });
+}
+
+// ── Country dropdown ──────────────────────────────────────────────────────────
+function countryDisplayName(cfg) {
+  const key        = `country_${cfg.id}`;
+  const translated = t(key);
+  const name       = (translated === key) ? cfg.name.replace(/\p{Emoji_Presentation}/gu,"").trim() : translated;
+  return name;
+}
+
+function rebuildCountryDropdown() {
+  const opts = $("country-dd-opts"); opts.innerHTML = "";
+  const all  = PlateRegistry.getAll();
+
+  // Sort by translated name in current language
+  const sorted = all.slice().sort((a, b) =>
+    countryDisplayName(a).localeCompare(countryDisplayName(b), I18n.lang)
+  );
+
+  sorted.forEach(cfg => {
+    // If country has multiple types, show each type as a separate option
+    const types = PlateRegistry.manifest()[cfg.id] || ["standard"];
+    types.forEach(type => {
+      const typed = PlateRegistry.get(`${cfg.id}:${type}`); if (!typed) return;
+      const name = countryDisplayName(typed);
+      const typeLabel = types.length > 1
+        ? ` <span style="font-size:10px;color:var(--muted);margin-left:4px">${type}</span>`
+        : "";
+
+      const div = document.createElement("div");
+      div.className = "dd-opt";
+      div.dataset.country = cfg.id;
+      div.dataset.type    = type;
+
+      // Check active
+      if (_selectedCountry && _selectedCountry.id === cfg.id && (_selectedCountry.type || "standard") === type) {
+        div.classList.add("active");
+      }
+
+      div.innerHTML = `<span class="opt-flag">${typed.flag || "🏁"}</span><div class="opt-main">${name}${typeLabel}</div>`;
+      div.addEventListener("click", () => {
+        selectCountry(typed);
+        closeDd("country-btn", "country-dd");
+      });
+      opts.appendChild(div);
+    });
+  });
+}
+
+function selectCountry(cfg) {
+  _selectedCountry = cfg;
+  $("country-btn-flag").textContent = cfg.flag || "🏁";
+  $("country-btn-name").textContent = countryDisplayName(cfg)
+    + (cfg.type && cfg.type !== "standard" ? ` (${cfg.type})` : "");
+  // Mark active option
+  document.querySelectorAll("#country-dd-opts .dd-opt").forEach(el => {
+    el.classList.toggle("active",
+      el.dataset.country === cfg.id && el.dataset.type === (cfg.type || "standard"));
+  });
+  updateFmtHint();
+  syncResForCountry();
+  updateResBadge();
+}
+
+// ── Generic dropdown open/close ───────────────────────────────────────────────
+function toggleDd(btnId, panelId) {
+  const btn   = $(btnId);
+  const panel = $(panelId);
+  const isOpen = panel.classList.contains("open");
+  // Close all others first
+  document.querySelectorAll(".custom-dd-panel.open").forEach(p => {
+    p.classList.remove("open");
+    p.previousElementSibling?.classList.remove("open");
+  });
+  if (!isOpen) { btn.classList.add("open"); panel.classList.add("open"); }
+}
+function closeDd(btnId, panelId) {
+  $(btnId)?.classList.remove("open");
+  $(panelId)?.classList.remove("open");
+}
+
+$("lang-btn").addEventListener("click", e => { e.stopPropagation(); toggleDd("lang-btn","lang-dd"); });
+$("country-btn").addEventListener("click", e => { e.stopPropagation(); toggleDd("country-btn","country-dd"); });
+document.addEventListener("click", () => {
+  document.querySelectorAll(".custom-dd-panel.open").forEach(p => {
+    p.classList.remove("open");
+    p.previousElementSibling?.classList.remove("open");
+  });
+});
+// Prevent dropdown panel clicks from closing
+["lang-dd","country-dd"].forEach(id => {
+  $(id)?.addEventListener("click", e => e.stopPropagation());
+});
+
+// ── Empty state steps ─────────────────────────────────────────────────────────
+const EMPTY_STEP_KEYS = [
+  { n:1, icon:"🗺",  key:"lbl_country" },
+  { n:2, icon:"✏️", key:"lbl_text"    },
+  { n:3, icon:"⚡", key:"btn_generate" },
+];
+function buildEmptySteps() {
+  const el = $("empty-steps"); if (!el) return;
+  el.innerHTML = "";
+  EMPTY_STEP_KEYS.forEach(step => {
+    const div = document.createElement("div");
+    div.className = "empty-step";
+    div.innerHTML = `<span class="sn">${step.n}</span><span>${step.icon} ${t(step.key)}</span>`;
+    el.appendChild(div);
+  });
+}
+
+// ── Resolution ────────────────────────────────────────────────────────────────
+const RES_PRESETS = [
+  { label:"1×",  w:520,  h:110 },
+  { label:"2×",  w:1040, h:220 },
+  { label:"4×",  w:2080, h:440 },
+  { label:"HD",  w:1280, h:270 },
+  { label:"FHD", w:1920, h:405 },
+  { label:"4K",  w:3840, h:810 },
+];
+function buildResPresets() {
+  const el = $("res-presets"); el.innerHTML = "";
+  RES_PRESETS.forEach(p => {
+    const tag = document.createElement("span");
+    tag.className = "res-preset"; tag.textContent = p.label; tag.title = `${p.w} × ${p.h} px`;
+    tag.onclick = () => {
+      $("res-w").value = p.w; $("res-h").value = p.h; $("res-unit").value = "px";
+      updateResBadge(); if (currentCfg) generate();
+    };
+    el.appendChild(tag);
+  });
+}
+function getOutputSize(cfg) {
+  cfg = cfg || _selectedCountry;
+  if (!cfg) return { w:0, h:0, scale:2 };
+  const unit = $("res-unit").value;
+  if (unit === "px") {
+    const w = parseInt($("res-w").value) || cfg.width * 2;
+    const s = w / cfg.width;
+    return { w: Math.round(cfg.width * s), h: Math.round(cfg.height * s), scale: s };
+  }
+  const s = parseFloat(unit);
+  return { w: Math.round(cfg.width * s), h: Math.round(cfg.height * s), scale: s };
+}
+function updateResBadge() {
+  const b = $("res-badge"); if (!b || b.style.display === "none") return;
+  const { w, h } = getOutputSize(); if (w && h) b.textContent = t("res_badge", { w, h });
+}
+function syncResForCountry() {
+  const cfg = _selectedCountry; if (!cfg) return;
+  const unit = $("res-unit").value, rw = $("res-w"), rh = $("res-h");
+  if (unit === "px") { rh.value = Math.round(parseInt(rw.value) * cfg.height / cfg.width); }
+  else { const s = parseFloat(unit); rw.value = Math.round(cfg.width * s); rh.value = Math.round(cfg.height * s); }
+}
+["res-w","res-h"].forEach(id => {
+  $(id).addEventListener("change", () => {
+    const cfg = _selectedCountry; if (!cfg) return;
+    const rw = $("res-w"), rh = $("res-h");
+    if ($("res-unit").value === "px") {
+      if (id === "res-w") rh.value = Math.round(parseInt(rw.value) * cfg.height / cfg.width);
+      else                rw.value = Math.round(parseInt(rh.value) * cfg.width  / cfg.height);
+    }
+    updateResBadge(); if (currentCfg) generate();
+  });
+});
+$("res-unit").addEventListener("change", () => { syncResForCountry(); updateResBadge(); if (currentCfg) generate(); });
+
+// ── Format hint ───────────────────────────────────────────────────────────────
+function updateFmtHint() {
+  const cfg = _selectedCountry;
+  $("fmt-hint-row").textContent = cfg ? `${t("fmt_prefix")} ${cfg.format}` : "";
+}
+
+// ── Generate ──────────────────────────────────────────────────────────────────
+function generate() {
+  const cfg  = _selectedCountry;
+  const text = plateText.value.trim().toUpperCase();
+  if (!cfg || !text) {
+    plateText.classList.add("invalid");
+    setTimeout(() => plateText.classList.remove("invalid"), 800);
+    return;
+  }
+  currentCfg = cfg; currentText = text;
+
+  const { scale } = getOutputSize(cfg);
+  PlateRenderer.draw(canvas, cfg, text, scale);
+
+  canvas.style.display = "block";
+  $("empty-state").style.display = "none";
+  $("action-row").style.display  = "flex";
+
+  const badge = $("res-badge");
+  badge.style.display = "block";
+  updateResBadge();
+
+  const base = location.href.replace(/[?#].*/, "").replace("index.html","").replace(/\/$/,"");
+  const { w }  = getOutputSize(cfg);
+  const type   = cfg.type && cfg.type !== "standard" ? `&type=${cfg.type}` : "";
+  const link   = `${base}/plate.html?country=${cfg.id}${type}&text=${encodeURIComponent(text)}&w=${w}`;
+  const ld = $("link-display");
+  ld.textContent = link; ld.title = link;
+  $("btn-open-link").onclick = () => window.open(link, "_blank");
+}
+
+$("btn-generate").onclick = generate;
+plateText.addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+
+$("btn-random").onclick = () => {
+  // Pick a random type too
+  const manifest = PlateRegistry.manifest();
+  const entries  = [];
+  for (const [id, types] of Object.entries(manifest)) {
+    types.forEach(type => {
+      const cfg = PlateRegistry.get(`${id}:${type}`);
+      if (cfg) entries.push(cfg);
+    });
+  }
+  const cfg = entries[Math.floor(Math.random() * entries.length)];
+  selectCountry(cfg);
+  plateText.value = cfg.example;
+  generate();
+};
+
+$("btn-copy").onclick = () => {
+  const link = $("link-display").textContent; if (link === "–") return;
+  navigator.clipboard.writeText(link).then(() => {
+    const ct = $("copy-toast"); ct.classList.remove("hidden");
+    setTimeout(() => ct.classList.add("hidden"), 2000);
+  });
+};
+
+$("btn-download").onclick = () => {
+  if (!currentCfg) return;
+  canvas.toBlob(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const { w, h } = getOutputSize(currentCfg);
+    a.download = `plate-${currentCfg.id}-${currentCfg.type || "std"}-${currentText.replace(/\s/g,"_")}-${w}x${h}.png`;
+    a.click();
+  }, "image/png");
+};
+
+// ── History ───────────────────────────────────────────────────────────────────
+let history = JSON.parse(localStorage.getItem("eu-plates-history") || "[]");
+const histEl = $("history-list");
+function saveHistory() { localStorage.setItem("eu-plates-history", JSON.stringify(history)); }
+
+function renderHistory() {
+  if (history.length === 0) {
+    histEl.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:4px 0">${t("hist_empty")}</div>`;
+    return;
+  }
+  histEl.innerHTML = "";
+  history.slice().reverse().forEach((item, ri) => {
+    const idx  = history.length - 1 - ri;
+    const type = item.type || "standard";
+    const cfg  = PlateRegistry.get(`${item.country}:${type}`) || PlateRegistry.get(item.country);
+    if (!cfg) return;
+    const div  = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <span class="hi-flag">${cfg.flag || "🏁"}</span>
+      <span class="hi-text">${item.text}</span>
+      <span class="hi-country">${item.country.toUpperCase()}${type !== "standard" ? " · "+type : ""}</span>
+      <button class="hi-del" title="${t("remove")}">✕</button>`;
+    div.addEventListener("click", e => {
+      if (e.target.classList.contains("hi-del")) return;
+      selectCountry(cfg); plateText.value = item.text;
+      updateFmtHint(); syncResForCountry(); generate();
+    });
+    div.querySelector(".hi-del").addEventListener("click", e => {
+      history.splice(idx, 1); saveHistory(); renderHistory(); e.stopPropagation();
+    });
+    histEl.appendChild(div);
+  });
+}
+
+$("btn-add-history").onclick = () => {
+  if (!currentCfg || !currentText) return;
+  const type = currentCfg.type || "standard";
+  if (!history.some(h => h.country === currentCfg.id && h.type === type && h.text === currentText)) {
+    history.push({ country: currentCfg.id, type, text: currentText });
+    if (history.length > 20) history.shift();
+    saveHistory();
+  }
+  renderHistory();
+};
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await Promise.all([ I18n.init(), PlateRegistry.loadAll() ]);
+
+  buildLangDropdown();
+  buildResPresets();
+  applyLang();
+
+  // Default country selection — first in sorted list
+  const allCfgs = PlateRegistry.getAll();
+  if (allCfgs.length) selectCountry(allCfgs[0]);
+
+  document.addEventListener("langchange", applyLang);
+
+  // Auto-generate from URL params
+  const p = new URLSearchParams(location.search);
+  if (p.get("country") && p.get("text")) {
+    const type    = p.get("type") || "standard";
+    const cfgFromURL = PlateRegistry.get(`${p.get("country")}:${type}`) || PlateRegistry.get(p.get("country"));
+    if (cfgFromURL) {
+      selectCountry(cfgFromURL);
+      plateText.value = decodeURIComponent(p.get("text"));
+      syncResForCountry(); generate();
+    }
+  }
+
+  const ov = $("loading"); ov.classList.add("done"); setTimeout(() => ov.remove(), 400);
+})();
+</script>
+</body>
+</html>

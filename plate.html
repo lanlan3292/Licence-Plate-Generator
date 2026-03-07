@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Plate</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { background:transparent; }
+  canvas, img { display:block; max-width:100%; }
+  #err { color:#c00; font:14px/1.6 'Noto Sans', sans-serif; padding:12px; }
+</style>
+<!-- Noto Sans for any UI text; Noto Color Emoji for flags in error messages -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="root"></div>
+
+<script src="assets/renderer.js"></script>
+<script src="assets/plate-registry.js"></script>
+<script>
+(async () => {
+  const params  = new URLSearchParams(location.search);
+  const country = (params.get("country") || "").toLowerCase();
+  const type    = (params.get("type")    || "standard").toLowerCase();
+  const text    = (params.get("text")    || "").toUpperCase().trim();
+  const fmt     = (params.get("fmt")     || "png").toLowerCase(); // "png" | "canvas"
+  const reqW    = parseInt(params.get("w") || "0");               // desired output width px
+
+  const root = document.getElementById("root");
+
+  if (!country) { root.innerHTML = `<div id="err">Missing ?country= parameter.</div>`; return; }
+  if (!text)    { root.innerHTML = `<div id="err">Missing ?text= parameter.</div>`;    return; }
+
+  // Load only the needed plate file
+  await PlateRegistry.load(country, type);
+  const cfg = PlateRegistry.get(`${country}:${type}`) || PlateRegistry.get(country);
+
+  if (!cfg) {
+    root.innerHTML = `<div id="err">Unknown plate: country="${country}" type="${type}".</div>`;
+    return;
+  }
+
+  const scale  = reqW > 0 ? reqW / cfg.width : 2;
+  const canvas = document.createElement("canvas");
+  PlateRenderer.draw(canvas, cfg, text, scale);
+
+  if (fmt === "canvas") {
+    root.appendChild(canvas);
+  } else {
+    canvas.toBlob(blob => {
+      const img = new Image();
+      img.src   = URL.createObjectURL(blob);
+      img.alt   = `${country.toUpperCase()} ${type} ${text}`;
+      img.title = img.alt;
+      root.appendChild(img);
+    }, "image/png");
+  }
+})();
+</script>
+</body>
+</html>
