@@ -38,6 +38,8 @@ const ErrorUI = (() => {
         font-family: 'Noto Sans', 'Noto Sans SC', system-ui, sans-serif;
         box-sizing: border-box;
         margin: auto 0;         /* vertical centering when card is short */
+        max-height: 85vh;
+        overflow-y: auto;
       }
 
       .eu-error-icon {
@@ -94,12 +96,12 @@ const ErrorUI = (() => {
         display: grid;
         grid-template-rows: 0fr;
         transition: grid-template-rows .28s ease;
-        overflow: hidden;
+        overflow: visible;
         margin-top: 0;
         transition: grid-template-rows .28s ease, margin-top .28s ease;
       }
       .eu-body-wrap.open { grid-template-rows: 1fr; margin-top: 10px; }
-      .eu-body-inner { min-height: 0; }
+      .eu-body-inner { min-height: 0; overflow: auto; }
 
       .eu-body-pre-wrap {
         background: #110808;
@@ -107,6 +109,9 @@ const ErrorUI = (() => {
         border-radius: 6px;
         padding: 12px 14px;
         overflow-x: auto;
+        overflow-y: visible;
+        max-height: 300px;
+        max-width: 100%;
       }
       .eu-body-pre-wrap pre {
         font-family: 'IBM Plex Mono', 'Consolas', monospace;
@@ -115,6 +120,8 @@ const ErrorUI = (() => {
         line-height: 1.6;
         white-space: pre;       /* no wrap — scroll horizontally */
         margin: 0;
+        display: inline-block;
+        min-width: 100%;
       }
     `;
     document.head.appendChild(s);
@@ -140,7 +147,7 @@ const ErrorUI = (() => {
     actions.className = "eu-error-actions";
     const reload = document.createElement("button");
     reload.className = "eu-error-reload";
-    reload.textContent = "↺ Reload / 重新加载";
+    reload.textContent = "Reload";
     reload.onclick = () => location.reload();
     actions.appendChild(reload);
     card.appendChild(actions);
@@ -151,7 +158,7 @@ const ErrorUI = (() => {
 
       const toggle = document.createElement("button");
       toggle.className = "eu-error-toggle";
-      toggle.innerHTML = `<span class="eu-chevron">▼</span><span>详细错误 / Details</span>`;
+      toggle.innerHTML = `<span class="eu-chevron">▼</span><span>Details</span>`;
 
       const bodyWrap  = document.createElement("div");
       bodyWrap.className = "eu-body-wrap";

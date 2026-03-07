@@ -93,7 +93,13 @@ const I18n = (() => {
       console.warn(`[I18n] ${msg}`);
       _warnings.push(msg);
       _strings[code] = {};
-      _meta[code]    = { flag: "🌐", label: code, sub: "", locale: code };
+      // Pretty-format the code as a fallback label (e.g. "en_gb" → "EN GB")
+      _meta[code] = {
+        flag:   "🌐",
+        label:  code.toUpperCase().replace("_", " "),
+        sub:    "",
+        locale: code.replace("_", "-"),
+      };
     }
   }
 
@@ -136,9 +142,10 @@ const I18n = (() => {
 
   async function init() {
     await _fetchManifest();
-    await _loadLang(FALLBACK_CODE);          // always pre-load fallback
+    // Pre-load ALL language files so _meta is populated for every dropdown entry.
+    // Lang files are small JSON — loading them all upfront is negligible.
+    await Promise.all(_available.map(code => _loadLang(code)));
     const detected = _detectLang();
-    if (detected !== FALLBACK_CODE) await _loadLang(detected);
     _lang = detected;
     document.documentElement.lang = _meta[detected]?.locale || "en";
     document.dispatchEvent(new CustomEvent("langchange", { detail: { lang: _lang } }));

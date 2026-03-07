@@ -139,6 +139,10 @@ header {
   top: calc(100% + 8px); right: 0; width: 236px;
 }
 
+/* 为语言按钮中的国旗添加 emoji 字体族 */
+.lang-sw .custom-dd-btn #lang-flag {
+  font-family: 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; }
+
 /* Keys-mode style */
 .lang-sw.keys-mode .custom-dd-btn { border-color: var(--accent); color: var(--accent); }
 
@@ -993,7 +997,7 @@ function showWarningToast(warnings) {
     ].join("\n");
 
     ErrorUI.showInLoading(
-      "Failed to load required resources. Check your network connection and try reloading.",
+      "Failed to load required resources.",
       detail
     );
     return;

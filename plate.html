@@ -12,7 +12,7 @@
   #err {
     padding: 16px;
     font-size: 13px;
-    color: #c97070;
+    color: #ca2d2d;
     font-family: 'IBM Plex Mono', 'Consolas', monospace;
     white-space: pre-wrap;
     line-height: 1.6;
@@ -37,27 +37,102 @@
 
   const root = document.getElementById("root");
 
-  function showErr(msg) {
+  function showErr(message, detail) {
     const d = document.createElement("div");
     d.id = "err";
-    d.textContent = msg;
+    d.textContent = detail ? `${message}\n\n${detail}` : message;
     root.appendChild(d);
   }
 
-  if (!country) { showErr("Error: missing ?country= parameter.\n\nExample: plate.html?country=de&text=B·AB 1234"); return; }
-  if (!text)    { showErr("Error: missing ?text= parameter.\n\nExample: plate.html?country=de&text=B·AB 1234"); return; }
+  if (!country) {
+    showErr("Error: missing ?country= parameter.", [
+      "Example: plate.html?country=de&text=B·AB 1234",
+      "",
+      "— Required parameters —",
+      "  country  : plate country ID (e.g., 'de', 'cn', 'gb')",
+      "  text     : plate text to render",
+      "",
+      "— Optional parameters —",
+      "  type     : plate type, default 'standard' (e.g., 'nev' for Chinese NEV)",
+      "  w        : output width in pixels (auto-scales height)",
+      "  fmt      : output format, default 'png' (options: 'png', 'canvas')",
+      "",
+      `— Received parameters —`,
+      `  country : "${country || "(missing)"}"`,
+      `  type    : "${type}"`,
+      `  text    : "${text || "(missing)"}"`,
+      `  fmt     : "${fmt}"`,
+      `  w       : ${reqW || "(auto)"}`,
+    ].join("\n"));
+    return;
+  }
+
+  if (!text) {
+    showErr("Error: missing ?text= parameter.", [
+      "Example: plate.html?country=de&text=B·AB 1234",
+      "",
+      "— Required parameters —",
+      "  country  : plate country ID (e.g., 'de', 'cn', 'gb')",
+      "  text     : plate text to render",
+      "",
+      "— Optional parameters —",
+      "  type     : plate type, default 'standard' (e.g., 'nev' for Chinese NEV)",
+      "  w        : output width in pixels (auto-scales height)",
+      "  fmt      : output format, default 'png' (options: 'png', 'canvas')",
+      "",
+      `— Received parameters —`,
+      `  country : "${country}"`,
+      `  type    : "${type}"`,
+      `  text    : "${text || "(missing)"}"`,
+      `  fmt     : "${fmt}"`,
+      `  w       : ${reqW || "(auto)"}`,
+    ].join("\n"));
+    return;
+  }
 
   try {
     await PlateRegistry.load(country, type);
   } catch (err) {
-    showErr(`Error: failed to load plate file.\n  country="${country}"  type="${type}"\n  file: assets/plate/${country}/${type}.js\n\n${err.message || err}`);
+    const detail = [
+      `Country: ${country}`,
+      `Type: ${type}`,
+      `Expected file: assets/plate/${country}/${type}.js`,
+      "",
+      "— Error message —",
+      err.message || String(err),
+      "",
+      "— Loaded warnings —",
+      PlateRegistry.warnings.length > 0 ? PlateRegistry.warnings.join("\n") : "(none)",
+      "",
+      "— Stack trace —",
+      err.stack || "(not available)",
+      "",
+      `URL: ${location.href}`,
+      `Time: ${new Date().toISOString()}`,
+    ].join("\n");
+
+    showErr("Failed to load plate configuration file.", detail);
     return;
   }
 
   const cfg = PlateRegistry.get(`${country}:${type}`) || PlateRegistry.get(country);
   if (!cfg) {
-    const warns = PlateRegistry.warnings.join("; ") || "(none)";
-    showErr(`Error: unknown plate — country="${country}" type="${type}"\n\nLoad warnings: ${warns}`);
+    const warns = PlateRegistry.warnings.join("\n") || "(none)";
+    const detail = [
+      `Country: ${country}`,
+      `Type: ${type}`,
+      "",
+      "— Error —",
+      "Requested plate configuration was not found in the registry.",
+      "",
+      "— Load warnings —",
+      warns,
+      "",
+      `URL: ${location.href}`,
+      `Time: ${new Date().toISOString()}`,
+    ].join("\n");
+
+    showErr("Unknown plate configuration.", detail);
     return;
   }
 
@@ -71,7 +146,29 @@
     } else {
       canvas.toBlob(blob => {
         if (!blob) {
-          showErr("Error: canvas export failed (toBlob returned null).\nTry opening via a local server instead of file://.");
+          showErr("Canvas export failed.", [
+            "The toBlob() call returned null.",
+            "",
+            "— Possible causes —",
+            "• Browser does not support canvas.toBlob()",
+            "• Security restrictions (CORS, file:// protocol)",
+            "• Insufficient memory for the requested resolution",
+            "",
+            "— Solution —",
+            "Try opening this page via a local server (http://localhost:port) instead of file:// protocol.",
+            "",
+            `— Parameters used —`,
+            `  country : ${country}`,
+            `  type    : ${type}`,
+            `  text    : ${text}`,
+            `  width   : ${cfg.width}`,
+            `  height  : ${cfg.height}`,
+            `  scale   : ${scale}`,
+            `  fmt     : ${fmt}`,
+            "",
+            `URL: ${location.href}`,
+            `Time: ${new Date().toISOString()}`,
+          ].join("\n"));
           return;
         }
         const img = new Image();
@@ -82,7 +179,29 @@
       }, "image/png");
     }
   } catch (err) {
-    showErr(`Error: render failed.\n  country=${country}  type=${type}  text=${text}\n\n${err.message || err}\n\n${err.stack || ""}`);
+    const detail = [
+      "The rendering engine failed while generating the plate image.",
+      "",
+      "— Parameters used —",
+      `  country : ${country}`,
+      `  type    : ${type}`,
+      `  text    : ${text}`,
+      `  width   : ${cfg.width}`,
+      `  height  : ${cfg.height}`,
+      `  scale   : ${reqW > 0 ? reqW / cfg.width : "auto (2)"}`,
+      `  format  : ${cfg.format}`,
+      "",
+      "— Error message —",
+      err.message || String(err),
+      "",
+      "— Stack trace —",
+      err.stack || "(not available)",
+      "",
+      `URL: ${location.href}`,
+      `Time: ${new Date().toISOString()}`,
+    ].join("\n");
+
+    showErr("Failed to render plate.", detail);
   }
 })();
 </script>
