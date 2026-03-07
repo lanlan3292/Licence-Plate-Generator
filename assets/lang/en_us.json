@@ -24,7 +24,7 @@
 
   "lbl_link":       "Direct Image Link",
   "copy_title":     "Copy link",
-  "copied":         "✓ Copied!",
+  "copied":         "Done",
   "link_hint":      "Open this URL for a standalone plate image (no UI)",
   "btn_open":       "Open Plate Image URL ↗",
 

@@ -1,16 +1,4 @@
 {
   "cn": ["standard", "nev"],
-  "de": ["standard"],
-  "fr": ["standard"],
-  "it": ["standard"],
-  "es": ["standard"],
-  "nl": ["standard"],
-  "uk": ["standard"],
-  "ch": ["standard"],
-  "se": ["standard"],
-  "at": ["standard"],
-  "be": ["standard"],
-  "cz": ["standard"],
-  "pt": ["standard"],
-  "no": ["standard"]
+  "de": ["standard"]
 }
