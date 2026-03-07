@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "code":   "ja_jp",
+    "locale": "ja-JP",
+    "flag":   "🇯🇵",
+    "label":  "日本語",
+    "sub":    "にほんご"
+  },
+
+  "page_title":     "ナンバープレート生成器",
+  "header_sub":     "ナンバープレート生成ツール",
+
+  "lbl_country":    "国 / 地域",
+  "lbl_text":       "プレート文字",
+  "placeholder":    "例：AB 1234",
+  "fmt_prefix":     "形式：",
+
+  "btn_generate":   "生成",
+  "btn_random":     "ランダム",
+
+  "lbl_res":        "出力解像度",
+  "res_hint":       "エクスポートされる PNG 画像の最終ピクセルサイズ",
+  "res_badge":      "出力：{w} × {h} px",
+
+  "lbl_link":       "画像直リンク",
+  "copy_title":     "リンクをコピー",
+  "copied":         "コピーしました",
+  "link_hint":      "このURLを開くと、ナンバープレート画像のみが表示されます（UIなし）",
+  "btn_open":       "ナンバープレート画像URLを開く ↗",
+
+  "hist_title":     "最近のプレート",
+  "hist_empty":     "まだプレートはありません。",
+  "remove":         "削除",
+
+  "empty_title":    "まだ何もありません",
+  "empty_msg":      "国 / 地域を選び、プレート文字を入力して「生成」を押してください。",
+
+  "preview_label":  "ライブプレビュー",
+  "btn_download":   "PNGをダウンロード",
+  "btn_save":       "履歴に保存",
+
+  "lang_keys_mode": "⌨ キー名を表示中",
+
+  "err_unknown_country": "不明な国コード：\"{country}\"。利用可能：{list}",
+  "err_no_text":         "プレート文字がありません。URL に ?text=プレート を追加してください。",
+
+  "country_de":  "ドイツ",
+  "country_fr":  "フランス",
+  "country_it":  "イタリア",
+  "country_es":  "スペイン",
+  "country_nl":  "オランダ",
+  "country_uk":  "イギリス",
+  "country_ch":  "スイス",
+  "country_pl":  "ポーランド",
+  "country_se":  "スウェーデン",
+  "country_at":  "オーストリア",
+  "country_be":  "ベルギー",
+  "country_cz":  "チェコ",
+  "country_pt":  "ポルトガル",
+  "country_no":  "ノルウェー",
+  "country_cn":  "中国",
+  "country_hk":  "香港",
+  "country_tw":  "台湾"
+}

@@ -1,14 +1,14 @@
 {
   "_meta": {
-    "code":   "en_us",
-    "locale": "en-US",
-    "flag":   "🇺🇸",
-    "label":  "English (US)",
-    "sub":    "United States"
+    "code":   "en_gb",
+    "locale": "en-GB",
+    "flag":   "🇬🇧",
+    "label":  "English (UK)",
+    "sub":    "United Kingdom"
   },
 
-  "page_title":     "Plate Generator",
-  "header_sub":     "License Plate Generator",
+  "page_title":     "Number Plate Generator",
+  "header_sub":     "Vehicle Number Plate Generator",
 
   "lbl_country":    "Country / Region",
   "lbl_text":       "Plate Text",
@@ -19,13 +19,13 @@
   "btn_random":     "Random",
 
   "lbl_res":        "Output Resolution",
-  "res_hint":       "Final pixel size of the exported PNG",
+  "res_hint":       "Final pixel dimensions of the exported PNG",
   "res_badge":      "Output: {w} × {h} px",
 
   "lbl_link":       "Direct Image Link",
   "copy_title":     "Copy link",
-  "copied":         "Done",
-  "link_hint":      "Open this URL for a standalone plate image (no UI)",
+  "copied":         "Copied",
+  "link_hint":      "Open this URL for a standalone plate image (no interface)",
   "btn_open":       "Open Plate Image URL ↗",
 
   "hist_title":     "Recent Plates",
@@ -33,7 +33,7 @@
   "remove":         "Remove",
 
   "empty_title":    "Nothing here yet",
-  "empty_msg":      "Choose a country and enter your plate text, then press Generate.",
+  "empty_msg":      "Select a country and enter your plate text, then press Generate.",
 
   "preview_label":  "Live Preview",
   "btn_download":   "Download PNG",
@@ -42,7 +42,7 @@
   "lang_keys_mode": "⌨ Showing raw key names",
 
   "err_unknown_country": "Unknown country code: \"{country}\". Available: {list}",
-  "err_no_text":         "No plate text. Add ?text=YOUR-PLATE to the URL.",
+  "err_no_text":         "No plate text entered. Add ?text=YOUR-PLATE to the URL.",
 
   "country_de":  "Germany",
   "country_fr":  "France",

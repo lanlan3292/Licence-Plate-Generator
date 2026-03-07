@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "code":   "zh_hk",
+    "locale": "zh-HK",
+    "flag":   "🇭🇰",
+    "label":  "中文 (香港)",
+    "sub":    "繁體中文"
+  },
+
+  "page_title":     "車牌產生器",
+  "header_sub":     "車牌生成工具",
+
+  "lbl_country":    "國家/地區",
+  "lbl_text":       "車牌文字",
+  "placeholder":    "例如：AB 1234",
+  "fmt_prefix":     "格式：",
+
+  "btn_generate":   "產生",
+  "btn_random":     "隨機",
+
+  "lbl_res":        "輸出解析度",
+  "res_hint":       "匯出 PNG 的最終像素尺寸",
+  "res_badge":      "輸出：{w} × {h} px",
+
+  "lbl_link":       "圖片直接連結",
+  "copy_title":     "複製連結",
+  "copied":         "已複製",
+  "link_hint":      "開啟此網址即可取得單獨的車牌圖片（無介面）",
+  "btn_open":       "開啟車牌圖片網址 ↗",
+
+  "hist_title":     "最近產生的車牌",
+  "hist_empty":     "目前還沒有車牌。",
+  "remove":         "移除",
+
+  "empty_title":    "目前沒有內容",
+  "empty_msg":      "請選擇國家並輸入車牌文字，然後按「產生」。",
+
+  "preview_label":  "即時預覽",
+  "btn_download":   "下載 PNG",
+  "btn_save":       "儲存到歷史記錄",
+
+  "lang_keys_mode": "⌨ 顯示原始鍵名",
+
+  "err_unknown_country": "未知的國家代碼：\"{country}\"。可用選項：{list}",
+  "err_no_text":         "沒有車牌文字。請在網址加入 ?text=YOUR-PLATE。",
+
+  "country_de":  "德國",
+  "country_fr":  "法國",
+  "country_it":  "義大利",
+  "country_es":  "西班牙",
+  "country_nl":  "荷蘭",
+  "country_uk":  "英國",
+  "country_ch":  "瑞士",
+  "country_pl":  "波蘭",
+  "country_se":  "瑞典",
+  "country_at":  "奧地利",
+  "country_be":  "比利時",
+  "country_cz":  "捷克",
+  "country_pt":  "葡萄牙",
+  "country_no":  "挪威",
+  "country_cn":  "中國",
+  "country_hk":  "香港",
+  "country_tw":  "台灣"
+}

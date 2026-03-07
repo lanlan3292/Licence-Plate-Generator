@@ -1,0 +1,62 @@
+{
+  "_meta": {
+    "code":   "gunmu",
+    "label":  "gunmu",
+    "sub":    "棍母"
+  },
+
+  "page_title":     "",
+  "header_sub":     "",
+
+  "lbl_country":    "",
+  "lbl_text":       "",
+  "placeholder":    "",
+  "fmt_prefix":     "",
+
+  "btn_generate":   "",
+  "btn_random":     "",
+
+  "lbl_res":        "",
+  "res_hint":       "",
+  "res_badge":      "",
+
+  "lbl_link":       "",
+  "copy_title":     "",
+  "copied":         "",
+  "link_hint":      "",
+  "btn_open":       "",
+
+  "hist_title":     "",
+  "hist_empty":     "",
+  "remove":         "",
+
+  "empty_title":    "",
+  "empty_msg":      "",
+
+  "preview_label":  "",
+  "btn_download":   "",
+  "btn_save":       "",
+
+  "lang_keys_mode": "⌨ ",
+
+  "err_unknown_country": "",
+  "err_no_text":         "",
+
+  "country_de":  "",
+  "country_fr":  "",
+  "country_it":  "",
+  "country_es":  "",
+  "country_nl":  "",
+  "country_uk":  "",
+  "country_ch":  "",
+  "country_pl":  "",
+  "country_se":  "",
+  "country_at":  "",
+  "country_be":  "",
+  "country_cz":  "",
+  "country_pt":  "",
+  "country_no":  "",
+  "country_cn":  "",
+  "country_hk":  "",
+  "country_tw":  ""
+}

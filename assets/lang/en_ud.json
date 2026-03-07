@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "code":   "en_ud",
+    "flag":   "🇬🇧",
+    "label":  "Ǝƃ˥ ɥsᴉꞁᵷuƎ",
+    "sub":    "pǝɯᴉʇuK uƃᴉʃuᴉʞ∩"
+  },
+
+  "page_title":     "ǝɹoʇuƃǝɹ pǝlɐʇɹǝW",
+  "header_sub":     "ǝʇoɹƃǝɹ pǝlɐʇɹǝʌ ǝlƃᴉɔǝʌ",
+  
+  "lbl_country":    "ƃuoɹǝp ɹǝƃuǝ / ʎɹʇuoɔ",
+  "lbl_text":       "ʇxǝʇ ǝlɐʇɹǝW",
+  "placeholder":    "ɹƃ. 4ƃ 321 ᴃ∀",
+  "fmt_prefix":     ":ʇɐɹɟoɯ",
+
+  "btn_generate":   "ǝʇɐɹǝuƃǝɹ",
+  "btn_random":     "plɯɐɹ∩",
+
+  "lbl_res":        "noısuƃolod ʇnʇoԀ",
+  "res_hint":       "ƃuԀ ʇxǝ ʇsɐlɟ ɹɐdᴉx lᴉɯɯᴉƃuƃ",
+  "res_badge":      "ʇnʇoԀ: {w} × {h} xԀ",
+
+  "lbl_link":       "ʞuᴉl ǝƃɐW ʇɔᴉɹp",
+  "copy_title":     "ʞuᴉl ʎdԀoↃ",
+  "copied":         "pǝpᴉƃoↃ",
+  "link_hint":      "(ǝɔɐɹᴉʇuᴉ o s,ǝW ǝʇɐlɹo ɹǝʌʇɐlsuɐ pɹo ʞnᴉl sᴉɥʇ uƃoԀ",
+  "btn_open":       "↗ʞuᴉl ǝƃɐW ǝlɐʇɹǝW uǝpO",
+
+  "hist_title":     "sǝlɐʇɹǝW ʇuǝɔǝɹ",
+  "hist_empty":     ".ʇǝʎ ʇǝlɐʇɹǝW oN",
+  "remove":         "ʌǝɯoɹ",
+
+  "empty_title":    "ʇǝʎ ǝɹǝɥ ǝɥʇ ƃuᴉɥʇoN",
+  "empty_msg":      ".ǝʇɐɹǝW ǝɹno ǝsɐɹd ǝɹnʇuǝʌ ǝɹno ɹǝʌǝɹԀ ɹǝʌǝɹp sǝp ɹǝɯlɐS",
+
+  "preview_label":  "ʍǝᴉʌǝɹԀ ǝʇᴉʌ",
+  "btn_download":   "ƃuԀ ʃʃoɐʍuoԀ",
+  "btn_save":       "ʎɹoʇs ɹoʍɐɥS",
+
+  "lang_keys_mode": "sǝɯɐu ʎʞǝʞ ʍɐɹ ʍoɥs ƃuᴉɥʇoS ⌨",
+
+  "err_unknown_country": "\"{country}\" :ǝpɔo ʎɹʇuoɔ uʍouʞu∀ .{list} :lɐʌɐᴉl∀",
+  "err_no_text":         ".LRU oʇ ǝlʇɹɐɹƃ sǝlɐʇɹǝW-ɹO-Y S=TɹƎHʇ ?pɐɹʇs s,ǝƃɐʇ sɹǝʇxǝ ʇxǝ ǝoN",
+
+  "country_de":  "ʎɹɯɐƃǝpɹƃǝ",
+  "country_fr":  "ǝɔuɐɹℲ",
+  "country_it":  "ʎlɐʇI",
+  "country_es":  "uɐdsƎ",
+  "country_nl":  "slǝpɹǝʇɥƃuǝ˥",
+  "country_uk":  "pǝʇɐɯᴉʇuK pǝʞuᴉʇɹn∩",
+  "country_ch":  "pǝɥʇɹɐʇsɹǝʍS",
+  "country_pl":  "pɐlOԀ",
+  "country_se":  "uǝpǝMԀ",
+  "country_at":  "ɐɹʇsu∀",
+  "country_be":  "ɯılƃǝqǝԀ",
+  "country_cz":  "ʇɹd∀ɔ ǝɔɥƆ",
+  "country_pt":  "ɹnoƃɹoԀ",
+  "country_no":  "ʎɹʍoɴ",
+  "country_cn":  "uɐɥƆ",
+  "country_hk":  "ƃuoƃ˥ 'ʞoԀ",
+  "country_tw":  "uɐᴉʍɐT"
+}

@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "code":   "lzh",
+    "locale": "lzh",
+    "flag":   "🏮",
+    "label":  "文言 (華夏)",
+    "sub":    "古漢語"
+  },
+
+  "page_title":     "車牌造像",
+  "header_sub":     "車牌生成之器",
+
+  "lbl_country":    "邦域",
+  "lbl_text":       "車牌文字",
+  "placeholder":    "例 甲乙 三四",
+  "fmt_prefix":     "式樣：",
+
+  "btn_generate":   "生成",
+  "btn_random":     "隨機",
+
+  "lbl_res":        "輸出品像之度",
+  "res_hint":       "導出PNG圖像之最終像素尺寸",
+  "res_badge":      "輸出尺度：寬 {w} × 高 {h} 像素",
+
+  "lbl_link":       "直接圖像連結",
+  "copy_title":     "複製連結",
+  "copied":         "已複製",
+  "link_hint":      "啟此連結可直接獲取車牌圖像，無界面也",
+  "btn_open":       "開啟車牌圖像連結 ↗",
+
+  "hist_title":     "近跡",
+  "hist_empty":     "尚無記載。",
+  "remove":         "刪除",
+
+  "empty_title":    "尚無內容",
+  "empty_msg":      "請先擇邦域，輸文字，而後生成。",
+
+  "preview_label":  "實時預覽",
+  "btn_download":   "下載 PNG",
+  "btn_save":       "存於記載",
+
+  "lang_keys_mode": "⌨ 今顯譯鍵之名",
+
+  "err_unknown_country": "未知邦域代碼：「{country}」。可選者：{list}",
+  "err_no_text":         "未輸車牌文字，請於URL中增 ?text=文字內容",
+
+  "country_de":  "德意志",
+  "country_fr":  "法蘭西",
+  "country_it":  "義大利",
+  "country_es":  "西班牙",
+  "country_nl":  "尼德蘭",
+  "country_uk":  "英吉利",
+  "country_ch":  "瑞士",
+  "country_pl":  "波蘭",
+  "country_se":  "瑞典",
+  "country_at":  "奧地利",
+  "country_be":  "比利時",
+  "country_cz":  "捷克",
+  "country_pt":  "葡萄牙",
+  "country_no":  "挪威",
+  "country_cn":  "中華",
+  "country_hk":  "香港",
+  "country_tw":  "臺灣"
+}
