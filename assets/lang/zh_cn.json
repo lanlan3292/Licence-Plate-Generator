@@ -11,6 +11,9 @@
   "header_sub":     "车牌生成工具",
 
   "lbl_country":    "国家/地区",
+  "lbl_type":       "牌照类型",
+  "type_standard":  "标准",
+  "type_nev":       "新能源",
   "lbl_text":       "车牌文字",
   "placeholder":    "例如 AB 1234",
   "fmt_prefix":     "格式：",

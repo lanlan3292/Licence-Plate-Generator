@@ -5,11 +5,18 @@
 <title>Plate</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body {
-    background: transparent;
-    font-family: 'Noto Sans', system-ui, sans-serif;
-  }
+  html, body { background: transparent; font-family: 'Noto Sans', system-ui, sans-serif; }
   canvas, img { display: block; max-width: 100%; }
+
+  /* Plain-text error for plate.html — no fancy card needed */
+  #err {
+    padding: 16px;
+    font-size: 13px;
+    color: #c97070;
+    font-family: 'IBM Plex Mono', 'Consolas', monospace;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -17,7 +24,6 @@
 <body>
 <div id="root"></div>
 
-<script src="assets/error-ui.js"></script>
 <script src="assets/renderer.js"></script>
 <script src="assets/plate-registry.js"></script>
 <script>
@@ -31,56 +37,30 @@
 
   const root = document.getElementById("root");
 
-  // ── Parameter validation ────────────────────────────────────────────────────
-  if (!country) {
-    ErrorUI.show(root,
-      "Missing required parameter: ?country=",
-      "URL must include ?country=XX where XX is a two-letter country code.\n\nExample:\n  plate.html?country=de&text=B·AB 1234"
-    );
-    return;
-  }
-  if (!text) {
-    ErrorUI.show(root,
-      "Missing required parameter: ?text=",
-      "URL must include ?text=YOUR-PLATE-TEXT\n\nExample:\n  plate.html?country=de&text=B·AB 1234"
-    );
-    return;
+  function showErr(msg) {
+    const d = document.createElement("div");
+    d.id = "err";
+    d.textContent = msg;
+    root.appendChild(d);
   }
 
-  // ── Load plate config ───────────────────────────────────────────────────────
+  if (!country) { showErr("Error: missing ?country= parameter.\n\nExample: plate.html?country=de&text=B·AB 1234"); return; }
+  if (!text)    { showErr("Error: missing ?text= parameter.\n\nExample: plate.html?country=de&text=B·AB 1234"); return; }
+
   try {
     await PlateRegistry.load(country, type);
   } catch (err) {
-    ErrorUI.show(root,
-      `Failed to load plate file for country="${country}" type="${type}".`,
-      [
-        err.message || String(err),
-        "",
-        `Attempted URL: assets/plate/${country}/${type}.js`,
-        `Full page URL: ${location.href}`,
-        `Time: ${new Date().toISOString()}`,
-        ...(err.stack ? ["", err.stack] : []),
-      ].join("\n")
-    );
+    showErr(`Error: failed to load plate file.\n  country="${country}"  type="${type}"\n  file: assets/plate/${country}/${type}.js\n\n${err.message || err}`);
     return;
   }
 
   const cfg = PlateRegistry.get(`${country}:${type}`) || PlateRegistry.get(country);
-
   if (!cfg) {
-    const detail = [
-      `No config registered for country="${country}" type="${type}".`,
-      "",
-      "This usually means the plate JS file loaded but did not call PlateRegistry.register().",
-      "",
-      `Attempted file: assets/plate/${country}/${type}.js`,
-      `Load warnings: ${PlateRegistry.warnings.join("; ") || "(none)"}`,
-    ].join("\n");
-    ErrorUI.show(root, `Unknown plate: country="${country}" type="${type}".`, detail);
+    const warns = PlateRegistry.warnings.join("; ") || "(none)";
+    showErr(`Error: unknown plate — country="${country}" type="${type}"\n\nLoad warnings: ${warns}`);
     return;
   }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
   try {
     const scale  = reqW > 0 ? reqW / cfg.width : 2;
     const canvas = document.createElement("canvas");
@@ -91,30 +71,18 @@
     } else {
       canvas.toBlob(blob => {
         if (!blob) {
-          ErrorUI.show(root,
-            "Canvas export failed: toBlob() returned null.",
-            "This may happen if the canvas is tainted by cross-origin resources (e.g. remote fonts loaded in a custom render function).\n\nTry opening the page via a local server instead of file://."
-          );
+          showErr("Error: canvas export failed (toBlob returned null).\nTry opening via a local server instead of file://.");
           return;
         }
-        const img   = new Image();
-        img.src     = URL.createObjectURL(blob);
-        img.alt     = `${country.toUpperCase()} ${type !== "standard" ? type + " " : ""}${text}`;
-        img.title   = img.alt;
+        const img = new Image();
+        img.src   = URL.createObjectURL(blob);
+        img.alt   = `${country.toUpperCase()} ${type !== "standard" ? type + " " : ""}${text}`;
+        img.title = img.alt;
         root.appendChild(img);
       }, "image/png");
     }
   } catch (err) {
-    ErrorUI.show(root,
-      "An error occurred while rendering the plate.",
-      [
-        err.message || String(err),
-        "",
-        `country=${country}  type=${type}  text=${text}  w=${reqW}`,
-        `Time: ${new Date().toISOString()}`,
-        ...(err.stack ? ["", err.stack] : []),
-      ].join("\n")
-    );
+    showErr(`Error: render failed.\n  country=${country}  type=${type}  text=${text}\n\n${err.message || err}\n\n${err.stack || ""}`);
   }
 })();
 </script>

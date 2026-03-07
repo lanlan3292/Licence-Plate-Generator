@@ -11,6 +11,9 @@
   "header_sub":     "License Plate Generator",
 
   "lbl_country":    "Country / Region",
+  "lbl_type": "Plate Type",
+  "type_standard": "Standard",
+  "type_nev": "NEV (New Energy)",
   "lbl_text":       "Plate Text",
   "placeholder":    "e.g. AB 1234",
   "fmt_prefix":     "Format:",

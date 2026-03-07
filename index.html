@@ -297,21 +297,25 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
 }
 
 /*
- * Shadow lives on a static outer wrapper that never changes size or transform.
- * The hover scale/translate is on an inner wrapper.
- * This prevents the browser from re-compositing the filter on every frame of
- * the hover animation (which caused the visible "shrink then snap" artefact).
+ * Shadow is on the canvas element itself, not a wrapper.
+ * Added only when .has-plate is set so the empty state never has a shadow
+ * to flicker. The hover lift is on #plate-canvas-inner, which contains ONLY
+ * the canvas once rendered, so there is nothing for the filter to re-composite.
  */
-#plate-canvas-wrap {
-  max-width: 100%;
-  filter: drop-shadow(0 10px 36px rgba(0,0,0,.65)) drop-shadow(0 3px 10px rgba(0,0,0,.45));
-}
-#plate-canvas-inner {
-  max-width: 100%;
+#plate-canvas-wrap  { max-width: 100%; }
+#plate-canvas-inner { max-width: 100%; }
+
+/* Hover only when a plate is showing */
+#plate-canvas-wrap.has-plate #plate-canvas-inner {
   transition: transform .3s ease;
 }
-#plate-canvas-inner:hover { transform: scale(1.015) translateY(-3px); }
-#plate-canvas { border-radius: 4px; display: block; max-width: 100%; height: auto; }
+#plate-canvas-wrap.has-plate #plate-canvas-inner:hover {
+  transform: scale(1.015) translateY(-3px);
+}
+#plate-canvas {
+  border-radius: 4px; display: block; max-width: 100%; height: auto;
+  filter: drop-shadow(0 10px 36px rgba(0,0,0,.65)) drop-shadow(0 3px 10px rgba(0,0,0,.45));
+}
 
 /* ── EMPTY STATE ─────────────────────────────────────────────────────────────── */
 .empty-state {
@@ -353,6 +357,29 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── MOBILE ──────────────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  header { padding: 0 16px; height: 52px; }
+  .logo  { font-size: 22px; }
+  .sub   { display: none; }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: auto; min-height: calc(100vh - 52px);
+    overflow: visible;
+  }
+  .sidebar {
+    border-right: none; border-bottom: 1px solid var(--border);
+    padding: 16px; gap: 14px;
+  }
+  .preview-area { padding: 24px 16px; min-height: 220px; }
+  .action-row   { flex-direction: column; align-items: stretch; }
+  .action-row .btn { width: 100%; }
+  .res-row { grid-template-columns: 1fr 14px 1fr 68px; }
+  .btn-row .btn { padding: 10px 10px; font-size: 11px; }
+  .lang-sw .custom-dd-panel { width: 200px; }
+}
 </style>
 </head>
 <body>
@@ -528,6 +555,7 @@ function applyLang() {
     "copy-toast":     "copied",
     "empty-title":    "empty_title",
     "empty-msg":      "empty_msg",
+    "lbl-type":       "lbl_type",
   };
   for (const [id, key] of Object.entries(nodes)) {
     const el = $(id); if (el) el.textContent = t(key);
@@ -612,6 +640,7 @@ function rebuildCountryDropdown() {
 
 // ── Type pills (shown below country selector when >1 type exists) ─────────────
 const TYPE_LABELS = { standard: "Standard", nev: "NEV 新能源" };
+function typeLabel(type) { return t("type_" + type) || TYPE_LABELS[type] || type; }
 
 function buildTypePills(cfg) {
   const field = $("type-field");
@@ -628,7 +657,7 @@ function buildTypePills(cfg) {
     const typed = PlateRegistry.get(`${cfg.id}:${type}`); if (!typed) return;
     const pill  = document.createElement("span");
     pill.className = "type-pill" + (activeType === type ? " active" : "");
-    pill.textContent = TYPE_LABELS[type] || type;
+    pill.textContent = typeLabel(type);
     pill.title = typed.format || "";
     pill.addEventListener("click", () => {
       selectCountry(typed);
@@ -779,6 +808,7 @@ function generate() {
   canvas.style.display = "block";
   $("empty-state").style.display = "none";
   $("action-row").style.display  = "flex";
+  $("plate-canvas-wrap").classList.add("has-plate");
 
   const badge = $("res-badge");
   badge.style.display = "block";
