@@ -41,6 +41,7 @@ const I18n = (() => {
   let _lang      = FALLBACK_CODE;
   let _strings   = {};   // { "en_us": { key: val, … }, … }
   let _meta      = {};   // { "en_us": { flag, label, sub, locale }, … }
+  const _warnings = [];  // non-fatal issues collected during init
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -88,7 +89,9 @@ const I18n = (() => {
       }
       _strings[code] = strings;
     } catch (e) {
-      console.warn(`[I18n] failed to load "${code}":`, e);
+      const msg = `Failed to load language file "${code}": ${e.message}`;
+      console.warn(`[I18n] ${msg}`);
+      _warnings.push(msg);
       _strings[code] = {};
       _meta[code]    = { flag: "🌐", label: code, sub: "", locale: code };
     }
@@ -153,5 +156,6 @@ const I18n = (() => {
     get lang()      { return _lang; },
     get keysMode()  { return _keysMode; },
     get available() { return _available.slice(); },
+    get warnings()  { return _warnings.slice(); },
   };
 })();

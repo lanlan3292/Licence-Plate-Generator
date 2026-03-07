@@ -27,7 +27,8 @@ const PlateRegistry = (() => {
   const MANIFEST_URL = "assets/plate/manifest.json";
 
   let _manifest = null;                   // { de: ["standard"], fr: ["standard"], ... }
-  const _configs = {};                    // "de" → cfg, "de:standard" → cfg
+  const _configs  = {};                   // "de" → cfg, "de:standard" → cfg
+  const _warnings = [];                   // non-fatal load errors
 
   // ── Manifest ───────────────────────────────────────────────────────────────
 
@@ -38,8 +39,8 @@ const PlateRegistry = (() => {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       _manifest = await res.json();
     } catch (e) {
-      console.error("[PlateRegistry] Failed to load manifest:", e);
-      _manifest = {};
+      // Re-throw — this is a critical failure; callers must handle it
+      throw new Error(`[PlateRegistry] Failed to load plate manifest (${MANIFEST_URL}): ${e.message}`);
     }
   }
 
@@ -68,7 +69,9 @@ const PlateRegistry = (() => {
       s.src     = src;
       s.onload  = () => resolve(true);
       s.onerror = () => {
-        console.warn(`[PlateRegistry] Failed to load: ${src}`);
+        const msg = `Failed to load plate file: ${src}`;
+        console.warn(`[PlateRegistry] ${msg}`);
+        _warnings.push(msg);
         resolve(false);
       };
       document.head.appendChild(s);
@@ -121,5 +124,6 @@ const PlateRegistry = (() => {
     return _manifest || {};
   }
 
-  return { register, load, loadAll, get, getAll, has, manifest };
+  return { register, load, loadAll, get, getAll, has, manifest,
+           get warnings() { return _warnings.slice(); } };
 })();

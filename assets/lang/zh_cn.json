@@ -7,8 +7,8 @@
     "sub":    "简体中文"
   },
 
-  "page_title":     "欧洲车牌生成器",
-  "header_sub":     "欧洲车牌生成工具",
+  "page_title":     "车牌生成器",
+  "header_sub":     "车牌生成工具",
 
   "lbl_country":    "国家/地区",
   "lbl_text":       "车牌文字",
@@ -36,8 +36,8 @@
   "empty_msg":      "选择国家/地区并输入车牌文字，然后点击生成。",
 
   "preview_label":  "实时预览",
-  "btn_download":   "⬇ 下载 PNG",
-  "btn_save":       "＋ 保存到记录",
+  "btn_download":   "下载 PNG",
+  "btn_save":       "保存到记录",
 
   "lang_keys_mode": "⌨ 正在显示翻译键名",
 

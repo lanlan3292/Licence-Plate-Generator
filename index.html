@@ -214,6 +214,16 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
 }
 .res-preset:hover { border-color: var(--accent2); color: var(--accent2); }
 
+/* ── TYPE PILLS (plate variant selector) ─────────────────────────────────────── */
+.type-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.type-pill {
+  padding: 5px 12px; background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; font-size: 11px; font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer; color: var(--muted); transition: all .15s; user-select: none;
+}
+.type-pill:hover { border-color: var(--accent); color: var(--accent); }
+.type-pill.active { border-color: var(--accent); color: var(--accent); background: rgba(232,200,74,.08); }
+
 /* ── BUTTONS ─────────────────────────────────────────────────────────────────── */
 .btn {
   width: 100%; padding: 11px 16px; border: none; border-radius: var(--radius);
@@ -286,13 +296,21 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
   font-size: 13px; color: var(--muted); text-transform: uppercase;
 }
 
-/* Shadow always present so it doesn't flash in/out */
+/*
+ * Shadow lives on a static outer wrapper that never changes size or transform.
+ * The hover scale/translate is on an inner wrapper.
+ * This prevents the browser from re-compositing the filter on every frame of
+ * the hover animation (which caused the visible "shrink then snap" artefact).
+ */
 #plate-canvas-wrap {
   max-width: 100%;
   filter: drop-shadow(0 10px 36px rgba(0,0,0,.65)) drop-shadow(0 3px 10px rgba(0,0,0,.45));
+}
+#plate-canvas-inner {
+  max-width: 100%;
   transition: transform .3s ease;
 }
-#plate-canvas-wrap:hover { transform: scale(1.015) translateY(-3px); }
+#plate-canvas-inner:hover { transform: scale(1.015) translateY(-3px); }
 #plate-canvas { border-radius: 4px; display: block; max-width: 100%; height: auto; }
 
 /* ── EMPTY STATE ─────────────────────────────────────────────────────────────── */
@@ -303,12 +321,7 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
 .empty-plate-mock {
   width: 300px; height: 64px;
   background: var(--card); border: 2px dashed var(--border); border-radius: 6px;
-  display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
-}
-.empty-plate-mock::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 36px;
-  background: repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(42,42,53,.5) 4px, rgba(42,42,53,.5) 8px);
-  border-right: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
 }
 .empty-plate-mock .mock-text {
   font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600;
@@ -386,6 +399,12 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
       </div>
     </div>
 
+    <!-- Plate type pills (only shown when country has >1 type) -->
+    <div class="field-group" id="type-field" style="display:none">
+      <label id="lbl-type">Type</label>
+      <div class="type-pills" id="type-pills"></div>
+    </div>
+
     <!-- Plate text -->
     <div class="field-group">
       <label id="lbl-text"></label>
@@ -445,15 +464,17 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
     <div class="preview-label" id="preview-label"></div>
 
     <div id="plate-canvas-wrap">
-      <div class="empty-state" id="empty-state">
-        <div class="empty-plate-mock"><span class="mock-text">· · · · ·</span></div>
-        <div>
-          <h3 id="empty-title"></h3>
-          <p id="empty-msg" style="margin-top:6px"></p>
+      <div id="plate-canvas-inner">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-plate-mock"><span class="mock-text">· · · · ·</span></div>
+          <div>
+            <h3 id="empty-title"></h3>
+            <p id="empty-msg" style="margin-top:6px"></p>
+          </div>
+          <div class="empty-steps" id="empty-steps"></div>
         </div>
-        <div class="empty-steps" id="empty-steps"></div>
+        <canvas id="plate-canvas" style="display:none"></canvas>
       </div>
-      <canvas id="plate-canvas" style="display:none"></canvas>
     </div>
 
     <div class="res-badge" id="res-badge" style="display:none"></div>
@@ -465,6 +486,7 @@ input[type=number]::-webkit-inner-spin-button { opacity: .4; }
   </section>
 </main>
 
+<script src="assets/error-ui.js"></script>
 <script src="assets/i18n.js"></script>
 <script src="assets/renderer.js"></script>
 <script src="assets/plate-registry.js"></script>
@@ -533,6 +555,7 @@ function applyLang() {
   }
 
   rebuildCountryDropdown();
+  if (_selectedCountry) buildTypePills(_selectedCountry);
   buildEmptySteps();
   updateFmtHint();
   updateResBadge();
@@ -566,56 +589,68 @@ function countryDisplayName(cfg) {
 
 function rebuildCountryDropdown() {
   const opts = $("country-dd-opts"); opts.innerHTML = "";
-  const all  = PlateRegistry.getAll();
+  const all  = PlateRegistry.getAll();   // one entry per country (primary/standard)
 
-  // Sort by translated name in current language
+  // Sort by translated name
   const sorted = all.slice().sort((a, b) =>
-    countryDisplayName(a).localeCompare(countryDisplayName(b), I18n.lang)
+    countryDisplayName(a).localeCompare(countryDisplayName(b), I18n.meta(I18n.lang).locale)
   );
 
   sorted.forEach(cfg => {
-    // If country has multiple types, show each type as a separate option
-    const types = PlateRegistry.manifest()[cfg.id] || ["standard"];
-    types.forEach(type => {
-      const typed = PlateRegistry.get(`${cfg.id}:${type}`); if (!typed) return;
-      const name = countryDisplayName(typed);
-      const typeLabel = types.length > 1
-        ? ` <span style="font-size:10px;color:var(--muted);margin-left:4px">${type}</span>`
-        : "";
-
-      const div = document.createElement("div");
-      div.className = "dd-opt";
-      div.dataset.country = cfg.id;
-      div.dataset.type    = type;
-
-      // Check active
-      if (_selectedCountry && _selectedCountry.id === cfg.id && (_selectedCountry.type || "standard") === type) {
-        div.classList.add("active");
-      }
-
-      div.innerHTML = `<span class="opt-flag">${typed.flag || "🏁"}</span><div class="opt-main">${name}${typeLabel}</div>`;
-      div.addEventListener("click", () => {
-        selectCountry(typed);
-        closeDd("country-btn", "country-dd");
-      });
-      opts.appendChild(div);
+    const div = document.createElement("div");
+    div.className = "dd-opt";
+    div.dataset.country = cfg.id;
+    if (_selectedCountry && _selectedCountry.id === cfg.id) div.classList.add("active");
+    div.innerHTML = `<span class="opt-flag">${cfg.flag || "🏁"}</span><div class="opt-main">${countryDisplayName(cfg)}</div>`;
+    div.addEventListener("click", () => {
+      selectCountry(PlateRegistry.get(cfg.id));
+      closeDd("country-btn", "country-dd");
     });
+    opts.appendChild(div);
+  });
+}
+
+// ── Type pills (shown below country selector when >1 type exists) ─────────────
+const TYPE_LABELS = { standard: "Standard", nev: "NEV 新能源" };
+
+function buildTypePills(cfg) {
+  const field = $("type-field");
+  const pills = $("type-pills");
+  pills.innerHTML = "";
+
+  const types = PlateRegistry.manifest()[cfg.id] || ["standard"];
+  if (types.length <= 1) { field.style.display = "none"; return; }
+
+  field.style.display = "";
+  const activeType = _selectedCountry?.type || "standard";
+
+  types.forEach(type => {
+    const typed = PlateRegistry.get(`${cfg.id}:${type}`); if (!typed) return;
+    const pill  = document.createElement("span");
+    pill.className = "type-pill" + (activeType === type ? " active" : "");
+    pill.textContent = TYPE_LABELS[type] || type;
+    pill.title = typed.format || "";
+    pill.addEventListener("click", () => {
+      selectCountry(typed);
+      if (currentCfg) generate();
+    });
+    pills.appendChild(pill);
   });
 }
 
 function selectCountry(cfg) {
   _selectedCountry = cfg;
   $("country-btn-flag").textContent = cfg.flag || "🏁";
-  $("country-btn-name").textContent = countryDisplayName(cfg)
-    + (cfg.type && cfg.type !== "standard" ? ` (${cfg.type})` : "");
-  // Mark active option
+  $("country-btn-name").textContent = countryDisplayName(cfg);
+  // Mark active in country dropdown (by country id only)
   document.querySelectorAll("#country-dd-opts .dd-opt").forEach(el => {
-    el.classList.toggle("active",
-      el.dataset.country === cfg.id && el.dataset.type === (cfg.type || "standard"));
+    el.classList.toggle("active", el.dataset.country === cfg.id);
   });
+  buildTypePills(cfg);
   updateFmtHint();
   syncResForCountry();
   updateResBadge();
+
 }
 
 // ── Generic dropdown open/close ───────────────────────────────────────────────
@@ -842,33 +877,159 @@ $("btn-add-history").onclick = () => {
   renderHistory();
 };
 
+// ── Soft-warning toast (non-fatal issues) ─────────────────────────────────────
+function showWarningToast(warnings) {
+  if (!warnings || warnings.length === 0) return;
+
+  const toast = document.createElement("div");
+  toast.style.cssText = [
+    "position:fixed", "bottom:20px", "right:20px", "z-index:8000",
+    "background:#1e1a0a", "border:1px solid #7a5a10", "border-radius:10px",
+    "padding:12px 16px", "max-width:340px", "font-size:12px",
+    "color:#c8a040", "font-family:inherit", "box-shadow:0 4px 20px rgba(0,0,0,.5)",
+    "display:flex", "flex-direction:column", "gap:8px",
+  ].join(";");
+
+  const top = document.createElement("div");
+  top.style.cssText = "display:flex;align-items:center;gap:8px;font-weight:600;padding-right:20px;";
+  top.innerHTML = `<span>⚠️</span><span>${warnings.length} resource(s) failed to load</span>`;
+
+  const toggle = document.createElement("button");
+  toggle.style.cssText = [
+    "background:none", "border:none", "color:#9a7a30", "font-size:11px",
+    "cursor:pointer", "font-family:inherit", "padding:0", "text-align:left",
+    "display:flex", "align-items:center", "gap:6px", "user-select:none",
+  ].join(";");
+  const chevron = document.createElement("span");
+  chevron.textContent = "▼";
+  chevron.style.cssText = "font-size:9px;display:inline-block;transition:transform .25s ease;";
+  const toggleLabel = document.createElement("span");
+  toggleLabel.textContent = "详细错误 / Details";
+  toggle.appendChild(chevron);
+  toggle.appendChild(toggleLabel);
+
+  // Animated wrapper using grid-template-rows
+  const bodyWrap = document.createElement("div");
+  bodyWrap.style.cssText = "display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease;overflow:hidden;";
+
+  const bodyInner = document.createElement("div");
+  bodyInner.style.cssText = "min-height:0;overflow:hidden;";
+
+  const body = document.createElement("div");
+  body.style.cssText = "background:#110e04;border:1px solid #3a2a08;border-radius:5px;padding:8px 10px;margin-top:6px;";
+  const pre = document.createElement("pre");
+  pre.style.cssText = "font-family:'IBM Plex Mono',monospace;font-size:10px;color:#9a7a30;white-space:pre-wrap;word-break:break-all;margin:0;line-height:1.5;";
+  pre.textContent = warnings.join("\n");
+  body.appendChild(pre);
+  bodyInner.appendChild(body);
+  bodyWrap.appendChild(bodyInner);
+
+  let open = false;
+  toggle.addEventListener("click", () => {
+    open = !open;
+    bodyWrap.style.gridTemplateRows = open ? "1fr" : "0fr";
+    chevron.style.transform = open ? "rotate(180deg)" : "";
+    clearTimeout(autoDismiss);
+  });
+
+  const close = document.createElement("button");
+  close.style.cssText = "position:absolute;top:8px;right:10px;background:none;border:none;color:#9a7a30;font-size:16px;cursor:pointer;line-height:1;";
+  close.textContent = "×";
+  close.onclick = () => toast.remove();
+  toast.style.position = "fixed";
+
+  toast.appendChild(top);
+  toast.appendChild(toggle);
+  toast.appendChild(bodyWrap);
+  toast.appendChild(close);
+  document.body.appendChild(toast);
+
+  const autoDismiss = setTimeout(() => { if (!open) toast.remove(); }, 12000);
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 (async () => {
-  await Promise.all([ I18n.init(), PlateRegistry.loadAll() ]);
+  try {
+    await Promise.all([ I18n.init(), PlateRegistry.loadAll() ]);
+  } catch (err) {
+    // Critical failure — manifest or network completely unavailable
+    const detail = [
+      err.message || String(err),
+      "",
+      "— Technical info —",
+      `URL: ${location.href}`,
+      `Time: ${new Date().toISOString()}`,
+      ...(err.stack ? ["", err.stack] : []),
+    ].join("\n");
 
-  buildLangDropdown();
-  buildResPresets();
-  applyLang();
-
-  // Default country selection — first in sorted list
-  const allCfgs = PlateRegistry.getAll();
-  if (allCfgs.length) selectCountry(allCfgs[0]);
-
-  document.addEventListener("langchange", applyLang);
-
-  // Auto-generate from URL params
-  const p = new URLSearchParams(location.search);
-  if (p.get("country") && p.get("text")) {
-    const type    = p.get("type") || "standard";
-    const cfgFromURL = PlateRegistry.get(`${p.get("country")}:${type}`) || PlateRegistry.get(p.get("country"));
-    if (cfgFromURL) {
-      selectCountry(cfgFromURL);
-      plateText.value = decodeURIComponent(p.get("text"));
-      syncResForCountry(); generate();
-    }
+    ErrorUI.showInLoading(
+      "Failed to load required resources. Check your network connection and try reloading.",
+      detail
+    );
+    return;
   }
 
-  const ov = $("loading"); ov.classList.add("done"); setTimeout(() => ov.remove(), 400);
+  // Collect non-fatal warnings from both modules
+  const allWarnings = [ ...I18n.warnings, ...PlateRegistry.warnings ];
+
+  try {
+    buildLangDropdown();
+    buildResPresets();
+    applyLang();
+
+    // Default country selection — first in sorted list
+    const allCfgs = PlateRegistry.getAll();
+    if (allCfgs.length === 0) {
+      throw new Error("No plate configurations loaded. All plate files may have failed to load.");
+    }
+    selectCountry(allCfgs[0]);
+
+    document.addEventListener("langchange", applyLang);
+
+    // Auto-generate from URL params
+    const p = new URLSearchParams(location.search);
+    if (p.get("country") && p.get("text")) {
+      const type       = p.get("type") || "standard";
+      const cfgFromURL = PlateRegistry.get(`${p.get("country")}:${type}`) || PlateRegistry.get(p.get("country"));
+      if (cfgFromURL) {
+        selectCountry(cfgFromURL);
+        plateText.value = decodeURIComponent(p.get("text"));
+        syncResForCountry(); generate();
+      } else {
+        allWarnings.push(`URL param ?country=${p.get("country")}&type=${type} did not match any loaded plate config.`);
+      }
+    }
+
+    // Dismiss loading overlay
+    const ov = $("loading");
+    ov.classList.add("done");
+    setTimeout(() => ov.remove(), 400);
+
+    // Show non-fatal warning toast after UI is visible
+    if (allWarnings.length > 0) {
+      setTimeout(() => showWarningToast(allWarnings), 600);
+    }
+
+  } catch (err) {
+    const detail = [
+      err.message || String(err),
+      "",
+      "— Loaded plates —",
+      PlateRegistry.getAll().map(c => `  ${c.id} (${c.type || "standard"})`).join("\n") || "  (none)",
+      "",
+      "— Non-fatal warnings —",
+      allWarnings.length ? allWarnings.join("\n") : "  (none)",
+      "",
+      `URL: ${location.href}`,
+      `Time: ${new Date().toISOString()}`,
+      ...(err.stack ? ["", err.stack] : []),
+    ].join("\n");
+
+    ErrorUI.showInLoading(
+      "An error occurred while initialising the application.",
+      detail
+    );
+  }
 })();
 </script>
 </body>

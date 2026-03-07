@@ -7,8 +7,8 @@
     "sub":    "English"
   },
 
-  "page_title":     "EU Plate Generator",
-  "header_sub":     "European License Plate Generator",
+  "page_title":     "Plate Generator",
+  "header_sub":     "License Plate Generator",
 
   "lbl_country":    "Country / Region",
   "lbl_text":       "Plate Text",
@@ -36,8 +36,8 @@
   "empty_msg":      "Choose a country and enter your plate text, then press Generate.",
 
   "preview_label":  "Live Preview",
-  "btn_download":   "⬇ Download PNG",
-  "btn_save":       "＋ Save to History",
+  "btn_download":   "Download PNG",
+  "btn_save":       "Save to History",
 
   "lang_keys_mode": "⌨ Showing raw key names",
 
