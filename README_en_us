@@ -1,0 +1,28 @@
+# Licence-Plate-Generator
+
+This project is inspired by the vast collection of virtual license plates on the SCS Truck World website. By combining cutting-edge 3A technologies, we have built a license plate generation tool.
+
+Inspired by the license plate customization experience on the SCS Software Truck World website, this project aims to bring that immersive sense of personalization to the open-source community. We are **proud** to announce that this is a carefully crafted **AAA-level** open-source project. It is not just a license plate generator, but also a tool that helps advance this **experimental** project.
+
+## Core Features
+
+- Multi-country license plate template library  
+- Well-designed UI  
+- More features coming soon  
+- Custom text input support  
+
+## Technical Architecture
+
+- Frontend Framework: Vanilla JavaScript + HTML5 Canvas with automatic switching to Three.js depending on device capability, ensuring maximum compatibility  
+- Styling System: CSS3 variables and modular LESS with dynamic theme switching support  
+
+## Contribution Guidelines
+
+Before submitting a PR, please read `CONTRIBUTING.md`.
+
+---
+
+> AAA refers to three AIs  
+> "Excellent" originally meant something else 😉  
+> "Proud" means AI-proud  
+> CONTRIBUTING.md may or may not exist  
